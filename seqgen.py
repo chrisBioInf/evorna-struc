@@ -218,8 +218,11 @@ def parse_cmscores(cm_scores):
 ################################
 
 
-def initialize_tree():
+def initialize_tree(options):
     return AnyNode(id='root', parent=None, generation=-1, 
+                   mutations=options.mutation_rate,
+                   n_children=options.children,
+                   selection=options.selection,
                    hash=hashlib.md5(str().encode('utf-8')).hexdigest())   
 
 
@@ -390,7 +393,7 @@ def main():
     records = load_seq_records(aln_file)
     
     # Initialize tree & write initial population file
-    root = initialize_tree()
+    root = initialize_tree(options)
     ungapped_seqs = [str(r.seq.ungap('-')) for r in records]
     record_ids, _ = add_children_nodes(seqs=ungapped_seqs, parent=root, generation=0, child_count=0)
     
@@ -465,7 +468,7 @@ def main():
         population_aln = clustalw_alignment(fasta_file=population_file)
         aligned_records = load_aligned_records(filename=population_aln)
         assign_similarity_scores(nodes=children, aligned_records=aligned_records)
-         
+        
         # Select best candidate(s)
         selected_records = []
         best_candidates = select_best_scoring(score_dict=score_dict, fraction=fraction)
