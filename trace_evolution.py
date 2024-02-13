@@ -42,22 +42,23 @@ def get_generation_nodes(node, generation):
 
 
 def get_minimal_ancestry(ancestor_dict):
-    nodes = []
+    print(ancestor_dict)
     in_order = sorted(list(ancestor_dict.keys()))
+    nodes = [AnyNode(id='root', children=[])]
     
     for id_ in in_order:
         if (len(ancestor_dict.get(id_)) == 0):
-            root = AnyNode(id=id_, children=[])
-            nodes.append(root)
+            node = AnyNode(id=id_, children=[])
+            nodes.append(node)
             continue
-        
+       
         parent_id = max(ancestor_dict.get(id_))
         parent_node = next(n for n in nodes if n.id == parent_id)
         node = AnyNode(id=id_, children=[], parent=parent_node)
         nodes.append(node)
         
-    return root
-        
+    return nodes[0]
+
 
 def find_last_common_ancestor(ancestorA, ancestorB):
     while (ancestorA.generation > ancestorB.generation):
@@ -114,21 +115,18 @@ def get_evo_features(path):
     generations = []
     cm_scores = []
     mfes = []
-    hamming_distances = []
     cg_contents = []
     
     for node in path:
         generations.append(node.generation)
         cm_scores.append(node.cm_score)
         mfes.append(node.mfe)
-        hamming_distances.append(node.mean_hamming_distance)
         cg_contents.append(node.CG_content)
         
     data = {
         'Generation': generations,
         'Covariance model score': cm_scores,
         'Minimum free energy': mfes,
-        'Mean hamming distance': hamming_distances,
         'CG content': cg_contents,
         }
     df = pd.DataFrame(data=data)
@@ -153,11 +151,8 @@ def plot_evolution(df, tree, outfile, xtick_steps=0):
 
     sns.lineplot(data=df, x='Generation', y='Minimum free energy',  hue='Sequence', ax=axes[0][1])
 
-    sns.lineplot(data=df, x='Generation', y='Mean hamming distance',  hue='Sequence', ax=axes[1][0])
+    sns.lineplot(data=df, x='Generation', y='CG content', hue='Sequence', ax=axes[1][0])
     axes[1][0].set_ylim((0, 1.1))
-
-    sns.lineplot(data=df, x='Generation', y='CG content', hue='Sequence', ax=axes[1][1])
-    axes[1][1].set_ylim((0, 1.1))
     
     for ax in (axes[0][0], axes[1][0], axes[1][1]):
         ax.legend([],[], frameon=False)
